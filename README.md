@@ -1,6 +1,6 @@
 # AW-Authors-Workbench 
 
-**Live demo:** https://guoxing-wu.github.io/T16-05-Workbench-elves/
+**Live demo:** https://rtk2iscoding.github.io/T16-05-Workbench-elves/
 Built by Team T16-05 Workbenchelves for the COMP30022 IT Project, University of Melbourne.
 
 ## Table of Contents
@@ -31,7 +31,7 @@ Imbi has a need for a workbench to help manage her writing efficiently, specific
 
 ## TL;DR
 ```bash
-git clone https://github.com/Guoxing-Wu/T16-05-Workbench-elves.git
+git clone https://github.com/rtk2iscoding/T16-05-Workbench-elves.git
 cd T16-05-Workbench-elves
 npm ci
 npm run dev
@@ -106,7 +106,7 @@ T16-05-Workbench-elves/
 ## Getting Started
 ```bash
 # 1. Clone
-git clone https://github.com/Guoxing-Wu/T16-05-Workbench-elves.git
+git clone https://github.com/rtk2iscoding/T16-05-Workbench-elves.git
 cd T16-05-Workbench-elves
  
 # 2. Install exact dependencies from package-lock.json
@@ -141,7 +141,7 @@ npm run preview
 ## CI/CD and Deployment
 - **CI:** `.github/workflows/ci.yml`
 - **Deploy:**  `.github/workflows/deploy.yml`
-- Publishes the production build to GitHub Pages: https://guoxing-wu.github.io/T16-05-Workbench-elves/
+- Publishes the production build to GitHub Pages: https://rtk2iscoding.github.io/T16-05-Workbench-elves/
 
   
 ## Development Workflow
@@ -157,7 +157,7 @@ npm run preview
 2. CI runs automatically on the pull request. 
 3. A teammate reviews and tests the branch, then merges it into `main`.
 4. The deploy workflow publishes the new build to GitHub Pages.
-5. The live site updates: https://guoxing-wu.github.io/T16-05-Workbench-elves/
+5. The live site updates: https://rtk2iscoding.github.io/T16-05-Workbench-elves/
 
 
 ### Environments
@@ -165,7 +165,7 @@ npm run preview
 |---|---|---|
 | Local development | `npm run dev` | printed in the terminal |
 | Local production preview | `npm run build`, then `npm run preview` | printed in the terminal |
-| Production | published by `deploy.yml` | https://guoxing-wu.github.io/T16-05-Workbench-elves/ |
+| Production | published by `deploy.yml` | https://rtk2iscoding.github.io/T16-05-Workbench-elves/ |
 
 
 
