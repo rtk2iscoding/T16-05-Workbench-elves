@@ -62,15 +62,17 @@ function getAgeToday(birthday: Character["birthday"]): string {
 
 export function CharactersPage({
   project,
+  initialCharacterId,
 }: {
   project: WritingProject;
+  initialCharacterId?: string;
 }) {
   const { addCharacter, updateCharacter, removeCharacter } = useWorkbench();
   const characters = project.characters ?? [];
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedCharacterId, setSelectedCharacterId] =
-    useState<string | null>(null);
+    useState<string | null>(initialCharacterId ?? null);
     const [descriptionEditor, setDescriptionEditor] = useState<{
     id: string;
     value: string;
@@ -185,6 +187,7 @@ export function CharactersPage({
           
           {/* Right: selected character */}
           <section
+            id={`story-source-character-${selectedCharacter.id}`} data-story-source tabIndex={-1}
             className="character-detail-panel"
             aria-labelledby="character-detail-name"
           >

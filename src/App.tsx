@@ -32,7 +32,17 @@ import { HelpPage } from "./components/HelpPage";
 import { StorySearch } from "./features/story-search/StorySearch";
 import type { AppearanceTarget } from "./features/story-search/appearances";
 
-type AppearanceNavigation = AppearanceTarget & { projectId: string; request: number };
+import type { StorySource } from "./features/story-assistant/consistency";
+
+type RecordTarget = AppearanceTarget | { view: "events" | "characters"; id: string; kind: StorySource["kind"] };
+type RecordNavigation = RecordTarget & { projectId: string; request: number };
+
+function focusStoryRecord(navigation: RecordNavigation) {
+  if (!("kind" in navigation)) return;
+  const element = document.getElementById(`story-source-${navigation.kind}-${navigation.id}`);
+  element?.focus({ preventScroll: true });
+  element?.scrollIntoView?.({ block: "center" });
+}
 
 // Initial author profile used for the current browser session.
 const INITIAL_PROFILE: AuthorProfile = {
@@ -123,7 +133,7 @@ const PLACEHOLDER_CONFIG: Record<
 interface CurrentViewProps {
   profile: AuthorProfile;
   onSaveProfile: (profile: AuthorProfile) => void;
-  appearanceNavigation?: AppearanceNavigation;
+  appearanceNavigation?: RecordNavigation;
 }
 
 function CurrentView({
@@ -247,7 +257,10 @@ function CurrentView({
         />
       );
     }
-    return <CharactersPage project={activeProject} />;
+    return (
+      <CharactersPage key={appearanceNavigation?.request ?? activeProject.id}
+        project={activeProject} initialCharacterId={appearanceNavigation?.id} />
+    );
   }
   //Timeline needs an active project to know which project's events to show.
   if (activeView === "timeline") {
@@ -290,7 +303,7 @@ function CurrentView({
 function WorkbenchApp() {
   const { persistenceStatus, activeView, activeProject, setActiveView } = useWorkbench();
   const [searchProjectId, setSearchProjectId] = useState<string>();
-  const [navigation, setNavigation] = useState<AppearanceNavigation>();
+  const [navigation, setNavigation] = useState<RecordNavigation>();
   const projectId = activeProject?.id;
   const showingSearch = Boolean(projectId && searchProjectId === projectId);
   const currentNavigation = navigation?.projectId === projectId && navigation?.view === activeView
@@ -301,10 +314,23 @@ function WorkbenchApp() {
     if (navigation && !currentNavigation) setNavigation(undefined);
   }, [navigation, currentNavigation]);
 
-  function openAppearance(target: AppearanceTarget) {
+  useEffect(() => {
+    if (currentNavigation) focusStoryRecord(currentNavigation);
+  }, [currentNavigation]);
+
+  function openAppearance(target: RecordTarget) {
     if (!projectId) return;
     setNavigation((previous) => ({ ...target, projectId, request: (previous?.request ?? 0) + 1 }));
     setActiveView(target.view);
+  }
+
+  function openSource(source: StorySource) {
+    switch (source.kind) {
+      case "chapter": openAppearance({ view: "chapterPlan", id: source.id }); break;
+      case "location": openAppearance({ view: "locations", id: source.id }); break;
+      case "character": openAppearance({ view: "characters", kind: source.kind, id: source.id }); break;
+      default: openAppearance({ view: "events", kind: source.kind, id: source.id }); break;
+    }
   }
 
   const {
@@ -366,7 +392,7 @@ function WorkbenchApp() {
             )}
           </main>
 
-          {persistenceReady && <RightSidebar />}
+          {persistenceReady && <RightSidebar onOpenSource={openSource} />}
         </div>
       </div>
     </div>

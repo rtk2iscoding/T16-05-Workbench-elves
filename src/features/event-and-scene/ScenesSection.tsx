@@ -467,7 +467,7 @@ const affectedCharacters = (scene.characterIds ?? [])
     : undefined;
 
   return (
-    <div className="scene-card" style={{ borderColor: color }}>
+    <div id={`story-source-scene-${scene.id}`} data-story-source tabIndex={-1} className="scene-card" style={{ borderColor: color }}>
       <div className="event-year">
         <span>DATE</span>
         <strong>{formatStoryDate(scene.date)}</strong>

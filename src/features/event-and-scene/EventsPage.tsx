@@ -98,7 +98,7 @@ function EventRow({
   const accent = event.isStoryBeat ? "coral" : "blue";
 
   return (
-    <div className={`event-card accent-${accent}`}>
+    <div id={`story-source-event-${event.id}`} data-story-source tabIndex={-1} className={`event-card accent-${accent}`}>
       <div className="event-year">
         <span>DATE</span>
 

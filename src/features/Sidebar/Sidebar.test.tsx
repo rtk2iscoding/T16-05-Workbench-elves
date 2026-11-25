@@ -152,7 +152,7 @@ describe("Sidebar", () => {
 describe("RightSidebar — signature note", () => {
   it("renders the default signature and author", async () => {
     mockStore({ activeProject: null });
-    render(<RightSidebar />);
+    render(<RightSidebar onOpenSource={jest.fn()} />);
 
     expect(
       await screen.findByText(
@@ -166,7 +166,7 @@ describe("RightSidebar — signature note", () => {
   it("edits the signature on Enter and closes the textarea", async () => {
     const user = userEvent.setup();
     mockStore({ activeProject: null });
-    render(<RightSidebar />);
+    render(<RightSidebar onOpenSource={jest.fn()} />);
 
     const signature = await screen.findByText(
       "Stories are like secret drawers — full of things we forgot we knew."
@@ -183,7 +183,7 @@ describe("RightSidebar — signature note", () => {
   it("keeps editing when Shift+Enter is pressed and closes on blur", async () => {
     const user = userEvent.setup();
     mockStore({ activeProject: null });
-    render(<RightSidebar />);
+    render(<RightSidebar onOpenSource={jest.fn()} />);
 
     const signature = await screen.findByText(
       "Stories are like secret drawers — full of things we forgot we knew."
@@ -202,7 +202,7 @@ describe("RightSidebar — signature note", () => {
   it("keeps the notebook attribution fixed when double-clicked", async () => {
     const user = userEvent.setup();
     mockStore({ activeProject: null });
-    render(<RightSidebar />);
+    render(<RightSidebar onOpenSource={jest.fn()} />);
 
     await user.dblClick(screen.getByText("— from your notebook"));
 
@@ -212,131 +212,13 @@ describe("RightSidebar — signature note", () => {
 
 });
 
-describe("RightSidebar — recently edited", () => {
-  const HOUR = 3_600_000;
-  const DAY = 86_400_000;
-
-  // A project whose children carry increasing editedAt timestamps so the sort,
-  // the time labels and the top-four card can be checked deterministically.
-  function recentProject() {
-    const now = Date.now();
-    const project = createProject({
-      title: "Recent Novel",
-      targetWordCount: 0,
-      averageChapterLength: 0,
-      storyStructure: "three-act",
-    });
-    project.chapters = [
-      { id: "c1", order: 0, title: "First Chapter", targetWordCount: 0, actualWordCount: 0, notes: "", updatedAt: now - 10_000 },
-    ];
-    project.characters = [
-      { id: "p1", name: "Ava", birthday: { year: 1990 }, updatedAt: now - 2 * 60_000 },
-    ];
-    project.locations = [
-      { id: "l1", name: "Carlton", updatedAt: now - 3 * HOUR },
-    ];
-    project.events = [
-      { id: "e1", title: "Arrival", description: "", startDate: { year: 1990 }, endDate: { year: 0 }, chapterIds: [], isStoryBeat: false, updatedAt: now - 1 * DAY },
-      { id: "e2", title: "Old Event", description: "", startDate: { year: 1888 }, endDate: { year: 0 }, chapterIds: [], isStoryBeat: false, updatedAt: now - 10 * DAY },
-    ];
-    project.scenes = [
-      { id: "s1", title: "Lobby", description: "", date: { year: 1990 }, chapterIds: [], updatedAt: now - 3 * DAY },
-    ];
-    return { project, now };
-  }
-
-  it("shows an empty prompt when no project is open", () => {
-    mockStore({ activeProject: null });
-    render(<RightSidebar />);
-
-    expect(screen.getByText("0 items")).toBeInTheDocument();
-    expect(screen.getByText("Open a project to see recent edits.")).toBeInTheDocument();
-  });
-
-  it("shows the nothing-edited prompt when the project has no children", () => {
-    mockStore({ activeProject: createProject({ title: "Empty", targetWordCount: 0, averageChapterLength: 0, storyStructure: "three-act" }) });
-    render(<RightSidebar />);
-
-    expect(screen.getByText("0 items")).toBeInTheDocument();
-    expect(screen.getByText("Nothing edited yet.")).toBeInTheDocument();
-  });
-
-  it("uses the fallback chapter title and the creation baseline for an item without a timestamp", () => {
-    // A chapter with no title and no updatedAt falls back to its number and the
-    // project's creation time — real data created before those fields existed.
-    const project = createProject({ title: "Recent Novel", targetWordCount: 0, averageChapterLength: 0, storyStructure: "three-act" });
-    project.chapters = [{ id: "c1", order: 0, title: "", targetWordCount: 0, actualWordCount: 0, notes: "" }];
+describe("RightSidebar — Story AI", () => {
+  it("shows the assistant when a project is open", () => {
+    const project = createProject({ title: "Novel", targetWordCount: 0, averageChapterLength: 0, storyStructure: "three-act" });
     mockStore({ activeProject: project });
-    render(<RightSidebar />);
-
-    expect(screen.getByText("Chapter 1")).toBeInTheDocument();
-    expect(screen.getByText("just now")).toBeInTheDocument();
-  });
-
-  it("lists the four most recently edited items with human-friendly times and navigates on click", async () => {
-    const user = userEvent.setup();
-    mockStore({ activeProject: recentProject().project });
-    render(<RightSidebar />);
-
-    // Top four by editedAt (most recent first).
-    expect(screen.getByText("4 items")).toBeInTheDocument();
-    expect(screen.getByText("First Chapter")).toBeInTheDocument();
-    expect(screen.getByText("Ava")).toBeInTheDocument();
-    expect(screen.getByText("Carlton")).toBeInTheDocument();
-    expect(screen.getByText("Arrival")).toBeInTheDocument();
-    // The two oldest stay out of the card.
-    expect(screen.queryByText("Lobby")).not.toBeInTheDocument();
-    expect(screen.queryByText("Old Event")).not.toBeInTheDocument();
-
-    // Relative time labels.
-    expect(screen.getByText("just now")).toBeInTheDocument();
-    expect(screen.getByText("2m ago")).toBeInTheDocument();
-    expect(screen.getByText("3h ago")).toBeInTheDocument();
-    expect(screen.getByText("yesterday")).toBeInTheDocument();
-
-    // Clicking a card item opens its view.
-    await user.click(screen.getByText("Ava"));
-    expect(setActiveViewMock).toHaveBeenCalledWith("characters");
-  });
-
-  it("opens the view-all drawer with every item, navigates from it and closes it", async () => {
-    const user = userEvent.setup();
-    const { project, now } = recentProject();
-    mockStore({ activeProject: project });
-    render(<RightSidebar />);
-
-    await user.click(screen.getByRole("button", { name: /View all/ }));
-    const drawer = screen.getByRole("dialog", { name: "All recently edited" });
-    const drawerScope = within(drawer);
-
-    // All six items appear in the drawer, including the two oldest.
-    expect(drawerScope.getByText("6 items")).toBeInTheDocument();
-    expect(drawerScope.getByText("Lobby")).toBeInTheDocument();
-    expect(drawerScope.getByText("Old Event")).toBeInTheDocument();
-    expect(drawerScope.getByText("3 days ago")).toBeInTheDocument();
-    expect(drawerScope.getByText(new Date(now - 10 * DAY).toLocaleDateString())).toBeInTheDocument();
-
-    // Clicking an item navigates and closes the drawer.
-    await user.click(drawerScope.getByText("Lobby"));
-    expect(setActiveViewMock).toHaveBeenCalledWith("events");
-    expect(screen.queryByRole("dialog", { name: "All recently edited" })).not.toBeInTheDocument();
-  });
-
-  it("closes the view-all drawer via its close button and via the scrim", async () => {
-    const user = userEvent.setup();
-    mockStore({ activeProject: recentProject().project });
-    render(<RightSidebar />);
-
-    // Close via the header close button.
-    await user.click(screen.getByRole("button", { name: /View all/ }));
-    await user.click(screen.getByRole("button", { name: "Close" }));
-    expect(screen.queryByRole("dialog", { name: "All recently edited" })).not.toBeInTheDocument();
-
-    // Re-open and close via the scrim (mouse down on the backdrop).
-    await user.click(screen.getByRole("button", { name: /View all/ }));
-    const scrim = screen.getByRole("dialog", { name: "All recently edited" }).previousElementSibling as HTMLElement;
-    await user.click(scrim);
-    expect(screen.queryByRole("dialog", { name: "All recently edited" })).not.toBeInTheDocument();
+    render(<RightSidebar onOpenSource={jest.fn()} />);
+    expect(screen.getByRole("region", { name: "Story AI" })).toBeInTheDocument();
+    expect(screen.queryByText("RECENTLY EDITED")).not.toBeInTheDocument();
   });
 });
 
