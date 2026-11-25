@@ -29,12 +29,11 @@ import { LocationsPage } from "./features/Location/LocationPage";
 import { ProfilePage } from "./components/ProfilePage";
 import type { AuthorProfile } from "./components/ProfilePage";
 import { HelpPage } from "./components/HelpPage";
-import { StorySearch } from "./features/story-search/StorySearch";
-import type { AppearanceTarget } from "./features/story-search/appearances";
-
 import type { StorySource } from "./features/story-assistant/consistency";
 
-type RecordTarget = AppearanceTarget | { view: "events" | "characters"; id: string; kind: StorySource["kind"] };
+type RecordTarget =
+  | { view: "chapterPlan" | "locations"; id: string }
+  | { view: "events" | "characters"; id: string; kind: StorySource["kind"] };
 type RecordNavigation = RecordTarget & { projectId: string; request: number };
 
 function focusStoryRecord(navigation: RecordNavigation) {
@@ -302,10 +301,8 @@ function CurrentView({
 
 function WorkbenchApp() {
   const { persistenceStatus, activeView, activeProject, setActiveView } = useWorkbench();
-  const [searchProjectId, setSearchProjectId] = useState<string>();
   const [navigation, setNavigation] = useState<RecordNavigation>();
   const projectId = activeProject?.id;
-  const showingSearch = Boolean(projectId && searchProjectId === projectId);
   const currentNavigation = navigation?.projectId === projectId && navigation?.view === activeView
     ? navigation
     : undefined;
@@ -318,7 +315,7 @@ function WorkbenchApp() {
     if (currentNavigation) focusStoryRecord(currentNavigation);
   }, [currentNavigation]);
 
-  function openAppearance(target: RecordTarget) {
+  function openRecord(target: RecordTarget) {
     if (!projectId) return;
     setNavigation((previous) => ({ ...target, projectId, request: (previous?.request ?? 0) + 1 }));
     setActiveView(target.view);
@@ -326,10 +323,10 @@ function WorkbenchApp() {
 
   function openSource(source: StorySource) {
     switch (source.kind) {
-      case "chapter": openAppearance({ view: "chapterPlan", id: source.id }); break;
-      case "location": openAppearance({ view: "locations", id: source.id }); break;
-      case "character": openAppearance({ view: "characters", kind: source.kind, id: source.id }); break;
-      default: openAppearance({ view: "events", kind: source.kind, id: source.id }); break;
+      case "chapter": openRecord({ view: "chapterPlan", id: source.id }); break;
+      case "location": openRecord({ view: "locations", id: source.id }); break;
+      case "character": openRecord({ view: "characters", kind: source.kind, id: source.id }); break;
+      default: openRecord({ view: "events", kind: source.kind, id: source.id }); break;
     }
   }
 
@@ -371,16 +368,10 @@ function WorkbenchApp() {
       {persistenceReady && <Sidebar />}
 
       <div className="main-area">
-        <TopBar profile={profile} showingStorySearch={showingSearch}
-          onToggleStorySearch={persistenceReady && projectId
-            ? () => setSearchProjectId(showingSearch ? undefined : projectId)
-            : undefined} />
+        <TopBar profile={profile} />
 
         <div className="content-wrapper">
           <main className="main-workspace" id="main-content">
-            {persistenceReady && activeProject && showingSearch && (
-              <StorySearch key={activeProject.id} project={activeProject} onNavigate={openAppearance} />
-            )}
             {persistenceReady ? (
               <CurrentView
                 profile={profile}

@@ -21,21 +21,21 @@ it("counts linked chapters and places once, then opens the requested editor or l
   render(<App />);
   await user.click(await screen.findByRole("button", { name: "Start writing" }));
   await user.click(await screen.findByRole("button", { name: "Open project" }));
-  await user.click(screen.getByRole("button", { name: "AI Story Search" }));
+  expect(screen.queryByRole("button", { name: "AI Story Search" })).not.toBeInTheDocument();
 
-  const panel = within(screen.getByRole("region", { name: "AI Story Search" }));
-  const question = panel.getByRole("textbox", { name: "Ask where a character appears" });
+  const panel = within(screen.getByRole("region", { name: "Story AI" }));
+  const question = panel.getByRole("textbox", { name: "Message Story AI" });
   await user.type(question, "林夏在哪几个章节出现了？");
-  await user.click(panel.getByRole("button", { name: "Ask" }));
+  await user.click(panel.getByRole("button", { name: "Send message" }));
 
   expect(await panel.findByText(/appears in 3 chapters and 1 location/)).toBeVisible();
   expect(screen.getByRole("complementary", { name: "Chapter editor: Chapter 1" })).toHaveFocus();
-  await user.click(panel.getByRole("button", { name: "3. Chapter 3" }));
+  await user.click(panel.getByRole("button", { name: "chapter: Chapter 3" }));
   expect(screen.getByRole("complementary", { name: "Chapter editor: Chapter 3" })).toHaveFocus();
 
   await user.clear(question);
   await user.type(question, "该角色出现在哪些地点？");
-  await user.click(panel.getByRole("button", { name: "Ask" }));
+  await user.click(panel.getByRole("button", { name: "Send message" }));
   const location = await screen.findByRole("article", { name: "Harbour" });
   expect(location).toHaveFocus();
   expect(within(location).getByText("Hide location histories")).toBeVisible();

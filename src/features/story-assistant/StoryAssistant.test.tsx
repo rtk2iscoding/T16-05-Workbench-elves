@@ -70,6 +70,7 @@ it("shows rule and evidenced semantic findings and focuses their exact record", 
   ]);
   const { assistant, user } = await openProject(project);
   await user.click(assistant.getByRole("button", { name: "Check consistency" }));
+  await user.click(assistant.getByRole("button", { name: "Send message" }));
   expect(await assistant.findByText(/1 rule findings · 1 semantic suggestions/)).toBeVisible();
   expect(assistant.queryByText("Unsupported finding")).not.toBeInTheDocument();
   const [event] = assistant.getAllByRole("button", { name: "event: The storm" });
@@ -85,9 +86,8 @@ it("answers a project question with a clickable source", async () => {
   const index = storySources(project).findIndex(({ id }) => id === "s1");
   modelResponse({ answer: "The confrontation is at the dock.", evidence: [{ index, quote: "Dock fight" }] });
   const { assistant, user } = await openProject(project);
-  await user.click(assistant.getByRole("button", { name: "Chat" }));
-  await user.type(assistant.getByRole("textbox", { name: "Ask about your project" }), "Where is the fight?");
-  await user.click(assistant.getByRole("button", { name: "Send" }));
+  await user.type(assistant.getByRole("textbox", { name: "Message Story AI" }), "Where is the fight?");
+  await user.click(assistant.getByRole("button", { name: "Send message" }));
   expect(await assistant.findByText("The confrontation is at the dock.")).toBeVisible();
   await user.click(assistant.getByRole("button", { name: "scene: Dock fight" }));
   expect(document.getElementById("story-source-scene-s1")).toHaveFocus();
@@ -122,9 +122,9 @@ it("previews outline drafts and imports matched characters and linked records on
     { ...fields, kind: "scene", title: "Mei arrives", date: "2020-01-04", characters: ["Mei"], event: "New arrival" },
   ]);
   const { assistant, user } = await openProject(buildProject());
-  await user.click(assistant.getByRole("button", { name: "Outline" }));
-  await user.type(assistant.getByRole("textbox", { name: "Paste your outline" }), "Alice meets Mei at the harbour.");
-  await user.click(assistant.getByRole("button", { name: "Draft from outline" }));
+  await user.click(assistant.getByRole("button", { name: "Break down outline" }));
+  await user.type(assistant.getByRole("textbox", { name: "Message Story AI" }), "Alice meets Mei at the harbour.");
+  await user.click(assistant.getByRole("button", { name: "Send message" }));
   await user.click(await assistant.findByRole("button", { name: "Review 4 drafts" }));
   let dialog = within(screen.getByRole("dialog", { name: "Review outline drafts" }));
   expect(dialog.getAllByRole("combobox", { name: "Character match" })[0]).toHaveValue("c1");

@@ -67,8 +67,8 @@ export function RightSidebar({ onOpenSource }: { onOpenSource: (source: StorySou
   const { activeProject } = useWorkbench();
   return (
     <aside className="right-sidebar">
-      <SignatureNote />
       {activeProject && <StoryAssistant key={activeProject.id} project={activeProject} onOpenSource={onOpenSource} />}
+      <SignatureNote />
     </aside>
   );
 }
